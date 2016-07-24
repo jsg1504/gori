@@ -51,3 +51,5 @@
 >> 최근 올라온 게시물 받아오기 GET
 
 >> FOLLOWING하고 있는 사람을 기반으로 게시물 받아오기 GET
+
+> DB와 연동되는 CMS(관리시스템 구축), use django admin
