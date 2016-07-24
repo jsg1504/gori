@@ -15,7 +15,7 @@ class UserProfile(models.Model):
     latitude = models.DecimalField(null=True, max_digits=11, decimal_places=6)
     longitude = models.DecimalField(null=True, max_digits=11, decimal_places=6)
     location = models.TextField(max_length=500, blank=True, null=True)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_expert_active = models.BooleanField(default=True)
     email_uuid = models.TextField(max_length=36, null=True)
     job = models.TextField(max_length=36, null=True)

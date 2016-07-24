@@ -24,6 +24,7 @@ from serializer import RelationshipSerializer
 from content.models import Content
 import json
 import logging
+from django.core.mail import EmailMessage
 
 
 def profile(request, username):
@@ -80,6 +81,9 @@ def login(request):
         if form.is_valid():
             auth_login(request, form.get_user())
             user_profile = request.user.userprofile
+            if not user_profile.is_active:
+                auth_logout(request)
+                return JsonResponse({'status': 'error', 'error_code': '204', 'desc': 'email'})
             serializer = UserProfileSerializer(user_profile)
             return JsonResponse(serializer.data, safe=False)
             # return JsonResponse({'status': 'success', 'session': request.user.get_session_auth_hash()})
@@ -125,12 +129,14 @@ def sign_up(request):
         user = User.objects.create_user(username=username, password=password, email=email)
         uuid = uuid4().hex
         if is_expert == 0:
-            UserProfile.objects.create(is_expert=False, user=user, email_uuid=uuid)
+            UserProfile.objects.create(is_expert=False, user=user, email_uuid=uuid, is_active=False)
         elif is_expert == 1:
-            UserProfile.objects.create(is_expert=True, user=user, email_uuid=uuid)
+            UserProfile.objects.create(is_expert=True, user=user, email_uuid=uuid, is_active=False)
         # TODO: send email uuid url, SMTP Server
         # TODO: generate cert URL
-        # cert_url = settings.SERVER_URL + 'accounts/' + username + '/' + uuid + '/'
+        cert_url = settings.SERVER_URL + 'accounts/' + username + '/' + uuid + '/'
+        email = EmailMessage('Email certification', cert_url, to=[email])
+        email.send()
         # logger.debug('cert_url:' + cert_url)
 
         return JsonResponse({'status': 'success', 'username': username})
@@ -140,7 +146,7 @@ def sign_up(request):
 
 @csrf_exempt
 def cert_email(request, username, uuid):
-    if request.method == 'POST':
+    if request.method == 'GET':
         user = User.objects.get(username=username)
         user_profile = UserProfile.objects.get(user=user)
         if user_profile.email_uuid == uuid:
